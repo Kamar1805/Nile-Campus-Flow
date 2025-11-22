@@ -1,26 +1,27 @@
+// server/index-prod.ts
 import fs from "node:fs";
 import path from "node:path";
-import { type Server } from "node:http";
-import express, { type Express } from "express";
+import { createServer, type Server } from "node:http";
+import express, { type Express, type Request, type Response } from "express";
 import runApp from "./app";
 
-export async function serveStatic(app: Express, _server: Server): Promise<void> {
-  const distPath = path.resolve(import.meta.dirname, "public");
+export async function serveStatic(app: Express, _server: Server) {
+  const distPath = path.resolve("client/dist"); // adjust if your build output is different
 
   if (!fs.existsSync(distPath)) {
-    throw new Error(
-      `Could not find the build directory: ${distPath}. Make sure to build the client first.`
-    );
+    throw new Error(`Build folder not found at ${distPath}. Make sure you ran 'vite build'`);
   }
 
+  // Serve all static files
   app.use(express.static(distPath));
 
-  // SPA fallback
-  app.use("*", (_req, res) => {
+  // Fallback to index.html for SPA routing
+  app.get("*", (_req: Request, res: Response) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
 
+// Start the server
 (async () => {
   await runApp(serveStatic);
 })();

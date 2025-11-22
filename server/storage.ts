@@ -1,103 +1,92 @@
-import {
-  type User,
-  type InsertUser,
-  type Vehicle,
-  type InsertVehicle,
-  type Gate,
-  type InsertGate,
-  type AccessLog,
-  type InsertAccessLog,
-  type Visitor,
-  type InsertVisitor,
-  type VehicleWithUser,
-  type AccessLogWithDetails,
-  type GateWithOfficer,
-} from "@shared/schema";
+// server/storage.ts
 import { randomUUID } from "crypto";
 
-export interface IStorage {
-  // Users
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  getAllUsers(): Promise<User[]>;
-  createUser(user: InsertUser): Promise<User>;
-  updateUser(id: string, user: Partial<InsertUser>): Promise<User | undefined>;
-  deleteUser(id: string): Promise<boolean>;
+export type UserRole = "admin" | "security_officer" | "student_staff" | "visitor";
 
-  // Vehicles
-  getVehicle(id: string): Promise<Vehicle | undefined>;
-  getVehicleByPlate(plate: string): Promise<Vehicle | undefined>;
-  getVehicleByQRCode(qrCode: string): Promise<Vehicle | undefined>;
-  getVehicleByRFID(rfidTag: string): Promise<Vehicle | undefined>;
-  getVehiclesByUserId(userId: string): Promise<Vehicle[]>;
-  getAllVehicles(): Promise<Vehicle[]>;
-  createVehicle(vehicle: InsertVehicle): Promise<Vehicle>;
-  updateVehicle(id: string, vehicle: Partial<Vehicle>): Promise<Vehicle | undefined>;
-  deleteVehicle(id: string): Promise<boolean>;
-
-  // Gates
-  getGate(id: string): Promise<Gate | undefined>;
-  getAllGates(): Promise<Gate[]>;
-  getGatesWithOfficers(): Promise<GateWithOfficer[]>;
-  createGate(gate: InsertGate): Promise<Gate>;
-  updateGate(id: string, gate: Partial<Gate>): Promise<Gate | undefined>;
-  deleteGate(id: string): Promise<boolean>;
-
-  // Access Logs
-  getAccessLog(id: string): Promise<AccessLog | undefined>;
-  getAllAccessLogs(): Promise<AccessLog[]>;
-  getAccessLogsWithDetails(): Promise<AccessLogWithDetails[]>;
-  getRecentAccessLogs(limit: number): Promise<AccessLogWithDetails[]>;
-  getAccessLogsByUserId(userId: string): Promise<AccessLogWithDetails[]>;
-  createAccessLog(log: InsertAccessLog): Promise<AccessLog>;
-
-  // Visitors
-  getVisitor(id: string): Promise<Visitor | undefined>;
-  getVisitorByQRCode(qrCode: string): Promise<Visitor | undefined>;
-  getAllVisitors(): Promise<Visitor[]>;
-  createVisitor(visitor: InsertVisitor): Promise<Visitor>;
-  updateVisitor(id: string, visitor: Partial<Visitor>): Promise<Visitor | undefined>;
-
-  // Stats
-  getStats(): Promise<{
-    totalUsers: number;
-    totalVehicles: number;
-    activeGates: number;
-    todayAccess: number;
-  }>;
-
-  getUserStats(userId: string): Promise<{
-    totalAccess: number;
-    lastAccess: string | null;
-  }>;
+export interface User {
+  id: string;
+  username: string;
+  password: string;
+  role: UserRole;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  createdAt: Date;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private vehicles: Map<string, Vehicle>;
-  private gates: Map<string, Gate>;
-  private accessLogs: Map<string, AccessLog>;
-  private visitors: Map<string, Visitor>;
+export interface Vehicle {
+  id: string;
+  userId: string;
+  licensePlate: string;
+  make: string;
+  model: string;
+  color: string;
+  rfidTag: string;
+  qrCode: string;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export interface Gate {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+  isOpen: boolean;
+  lastActivity: Date | null;
+  assignedOfficer: string | null;
+}
+
+export interface AccessLog {
+  id: string;
+  vehicleId: string;
+  userId: string;
+  gateId: string;
+  timestamp: Date;
+  action: string;
+  authMethod: string;
+  status: string;
+  reason: string | null;
+  processedBy: string | null;
+}
+
+export interface Visitor {
+  id: string;
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  purpose: string;
+  hostName: string;
+  hostContact: string;
+  vehiclePlate: string | null;
+  qrCode: string;
+  validFrom: Date;
+  validUntil: Date;
+  isActive: boolean;
+  createdAt: Date;
+}
+
+export class MemStorage {
+  users = new Map<string, User>();
+  vehicles = new Map<string, Vehicle>();
+  gates = new Map<string, Gate>();
+  accessLogs = new Map<string, AccessLog>();
+  visitors = new Map<string, Visitor>();
 
   constructor() {
-    this.users = new Map();
-    this.vehicles = new Map();
-    this.gates = new Map();
-    this.accessLogs = new Map();
-    this.visitors = new Map();
     this.seedData();
   }
 
   private seedData() {
-    // Create demo users
-    const demoUsers = [
+    // Users
+    const demoUsers: Omit<User, "id" | "createdAt">[] = [
       {
         username: "admin",
         password: "password",
         role: "admin",
         fullName: "Admin User",
         email: "admin@nileuniversity.edu",
-        phoneNumber: "+234 123 456 7890",
+        phoneNumber: "+2341234567890",
       },
       {
         username: "security",
@@ -105,7 +94,7 @@ export class MemStorage implements IStorage {
         role: "security_officer",
         fullName: "Security Officer",
         email: "security@nileuniversity.edu",
-        phoneNumber: "+234 123 456 7891",
+        phoneNumber: "+2341234567891",
       },
       {
         username: "student",
@@ -113,7 +102,7 @@ export class MemStorage implements IStorage {
         role: "student_staff",
         fullName: "John Student",
         email: "john.student@nileuniversity.edu",
-        phoneNumber: "+234 123 456 7892",
+        phoneNumber: "+2341234567892",
       },
       {
         username: "visitor",
@@ -121,79 +110,30 @@ export class MemStorage implements IStorage {
         role: "visitor",
         fullName: "Jane Visitor",
         email: "jane.visitor@example.com",
-        phoneNumber: "+234 123 456 7893",
+        phoneNumber: "+2341234567893",
       },
     ];
 
-    demoUsers.forEach((userData) => {
+    demoUsers.forEach((u) => {
       const id = randomUUID();
-      const user: User = {
-        ...userData,
-        id,
-        createdAt: new Date(),
-      };
-      this.users.set(id, user);
+      this.users.set(id, { ...u, id, createdAt: new Date() });
     });
 
-    // Create demo gates
-    const demoGates = [
-      { name: "Main Gate Entrance", location: "University Main Entrance", status: "online", isOpen: false },
-      { name: "Main Gate Exit", location: "University Main Exit", status: "online", isOpen: false },
-      { name: "Hostel Gate", location: "Student Hostel Entrance", status: "online", isOpen: false },
+    // Gates
+    const securityOfficer = Array.from(this.users.values()).find(
+      (u) => u.role === "security_officer"
+    );
+
+    const demoGates: Omit<Gate, "id" | "lastActivity">[] = [
+      { name: "Main Gate Entrance", location: "University Main Entrance", status: "online", isOpen: false, assignedOfficer: securityOfficer?.id ?? null },
+      { name: "Main Gate Exit", location: "University Main Exit", status: "online", isOpen: false, assignedOfficer: securityOfficer?.id ?? null },
+      { name: "Hostel Gate", location: "Student Hostel Entrance", status: "online", isOpen: false, assignedOfficer: securityOfficer?.id ?? null },
     ];
 
-    const securityOfficer = Array.from(this.users.values()).find(u => u.role === "security_officer");
-    
-    demoGates.forEach((gateData) => {
+    demoGates.forEach((g) => {
       const id = randomUUID();
-      const gate: Gate = {
-        ...gateData,
-        id,
-        lastActivity: new Date(),
-        assignedOfficer: securityOfficer?.id || null,
-      };
-      this.gates.set(id, gate);
+      this.gates.set(id, { ...g, id, lastActivity: new Date() });
     });
-
-    // Create demo vehicle for student
-    const student = Array.from(this.users.values()).find(u => u.role === "student_staff");
-    if (student) {
-      const vehicleId = randomUUID();
-      const vehicle: Vehicle = {
-        id: vehicleId,
-        userId: student.id,
-        licensePlate: "ABC-123-XY",
-        make: "Toyota",
-        model: "Camry",
-        color: "Silver",
-        rfidTag: `RFID-${randomUUID().substring(0, 8)}`,
-        qrCode: `QR-${vehicleId}`,
-        isActive: true,
-        createdAt: new Date(),
-      };
-      this.vehicles.set(vehicleId, vehicle);
-
-      // Create some demo access logs
-      const mainGate = Array.from(this.gates.values()).find(g => g.name === "Main Gate");
-      if (mainGate) {
-        for (let i = 0; i < 5; i++) {
-          const logId = randomUUID();
-          const log: AccessLog = {
-            id: logId,
-            vehicleId: vehicle.id,
-            userId: student.id,
-            gateId: mainGate.id,
-            timestamp: new Date(Date.now() - i * 3600000), // Each hour back
-            action: i % 2 === 0 ? "entry" : "exit",
-            authMethod: i % 3 === 0 ? "rfid" : "qr_code",
-            status: "authorized",
-            reason: null,
-            processedBy: null,
-          };
-          this.accessLogs.set(logId, log);
-        }
-      }
-    }
   }
 
   // Users
@@ -202,23 +142,23 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find((user) => user.username === username);
+    return Array.from(this.users.values()).find((u) => u.username === username);
   }
 
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values());
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async createUser(u: Omit<User, "id" | "createdAt">): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id, createdAt: new Date() };
+    const user: User = { ...u, id, createdAt: new Date() };
     this.users.set(id, user);
     return user;
   }
 
-  async updateUser(id: string, updates: Partial<InsertUser>): Promise<User | undefined> {
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
     const user = this.users.get(id);
-    if (!user) return undefined;
+    if (!user) return;
     const updated = { ...user, ...updates };
     this.users.set(id, updated);
     return updated;
@@ -253,13 +193,13 @@ export class MemStorage implements IStorage {
     return Array.from(this.vehicles.values());
   }
 
-  async createVehicle(insertVehicle: InsertVehicle): Promise<Vehicle> {
+  async createVehicle(v: Omit<Vehicle, "id" | "qrCode" | "rfidTag" | "createdAt">): Promise<Vehicle> {
     const id = randomUUID();
     const vehicle: Vehicle = {
-      ...insertVehicle,
+      ...v,
       id,
-      rfidTag: `RFID-${randomUUID().substring(0, 8)}`,
       qrCode: `QR-${id}`,
+      rfidTag: `RFID-${randomUUID().substring(0, 8)}`,
       isActive: true,
       createdAt: new Date(),
     };
@@ -269,7 +209,7 @@ export class MemStorage implements IStorage {
 
   async updateVehicle(id: string, updates: Partial<Vehicle>): Promise<Vehicle | undefined> {
     const vehicle = this.vehicles.get(id);
-    if (!vehicle) return undefined;
+    if (!vehicle) return;
     const updated = { ...vehicle, ...updates };
     this.vehicles.set(id, updated);
     return updated;
@@ -288,26 +228,16 @@ export class MemStorage implements IStorage {
     return Array.from(this.gates.values());
   }
 
-  async getGatesWithOfficers(): Promise<GateWithOfficer[]> {
-    const gates = Array.from(this.gates.values());
-    return Promise.all(
-      gates.map(async (gate) => {
-        const officer = gate.assignedOfficer ? await this.getUser(gate.assignedOfficer) : undefined;
-        return { ...gate, officer };
-      })
-    );
-  }
-
-  async createGate(insertGate: InsertGate): Promise<Gate> {
+  async createGate(g: Omit<Gate, "id" | "lastActivity">): Promise<Gate> {
     const id = randomUUID();
-    const gate: Gate = { ...insertGate, id };
+    const gate: Gate = { ...g, id, lastActivity: new Date() };
     this.gates.set(id, gate);
     return gate;
   }
 
   async updateGate(id: string, updates: Partial<Gate>): Promise<Gate | undefined> {
     const gate = this.gates.get(id);
-    if (!gate) return undefined;
+    if (!gate) return;
     const updated = { ...gate, ...updates, lastActivity: new Date() };
     this.gates.set(id, updated);
     return updated;
@@ -328,32 +258,15 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async getAccessLogsWithDetails(): Promise<AccessLogWithDetails[]> {
-    const logs = await this.getAllAccessLogs();
-    return Promise.all(
-      logs.map(async (log) => {
-        const vehicle = (await this.getVehicle(log.vehicleId))!;
-        const user = (await this.getUser(log.userId))!;
-        const gate = (await this.getGate(log.gateId))!;
-        const processedByUser = log.processedBy ? await this.getUser(log.processedBy) : undefined;
-        return { ...log, vehicle, user, gate, processedByUser };
-      })
-    );
-  }
-
-  async getRecentAccessLogs(limit: number): Promise<AccessLogWithDetails[]> {
-    const logs = await this.getAccessLogsWithDetails();
-    return logs.slice(0, limit);
-  }
-
-  async getAccessLogsByUserId(userId: string): Promise<AccessLogWithDetails[]> {
-    const logs = await this.getAccessLogsWithDetails();
-    return logs.filter((log) => log.userId === userId);
-  }
-
-  async createAccessLog(insertLog: InsertAccessLog): Promise<AccessLog> {
+  async createAccessLog(a: Omit<AccessLog, "id" | "timestamp">): Promise<AccessLog> {
     const id = randomUUID();
-    const log: AccessLog = { ...insertLog, id, timestamp: new Date() };
+    const log: AccessLog = {
+      ...a,
+      id,
+      timestamp: new Date(),
+      reason: a.reason ?? null,
+      processedBy: a.processedBy ?? null,
+    };
     this.accessLogs.set(id, log);
     return log;
   }
@@ -371,12 +284,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.visitors.values());
   }
 
-  async createVisitor(insertVisitor: InsertVisitor): Promise<Visitor> {
+  async createVisitor(v: Omit<Visitor, "id" | "qrCode" | "createdAt"> & { qrCode?: string }): Promise<Visitor> {
     const id = randomUUID();
     const visitor: Visitor = {
-      ...insertVisitor,
+      ...v,
       id,
-      qrCode: `VISITOR-${id}`,
+      qrCode: v.qrCode ?? `VISITOR-${id}`,
+      vehiclePlate: v.vehiclePlate ?? null,
+      isActive: v.isActive ?? true,
       createdAt: new Date(),
     };
     this.visitors.set(id, visitor);
@@ -385,43 +300,10 @@ export class MemStorage implements IStorage {
 
   async updateVisitor(id: string, updates: Partial<Visitor>): Promise<Visitor | undefined> {
     const visitor = this.visitors.get(id);
-    if (!visitor) return undefined;
+    if (!visitor) return;
     const updated = { ...visitor, ...updates };
     this.visitors.set(id, updated);
     return updated;
-  }
-
-  // Stats
-  async getStats(): Promise<{
-    totalUsers: number;
-    totalVehicles: number;
-    activeGates: number;
-    todayAccess: number;
-  }> {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return {
-      totalUsers: this.users.size,
-      totalVehicles: this.vehicles.size,
-      activeGates: Array.from(this.gates.values()).filter((g) => g.status === "online").length,
-      todayAccess: Array.from(this.accessLogs.values()).filter(
-        (log) => log.timestamp >= today
-      ).length,
-    };
-  }
-
-  async getUserStats(userId: string): Promise<{
-    totalAccess: number;
-    lastAccess: string | null;
-  }> {
-    const userLogs = Array.from(this.accessLogs.values()).filter((log) => log.userId === userId);
-    const sorted = userLogs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-    return {
-      totalAccess: userLogs.length,
-      lastAccess: sorted.length > 0 ? sorted[0].timestamp.toISOString() : null,
-    };
   }
 }
 
