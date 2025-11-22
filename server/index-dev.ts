@@ -1,4 +1,3 @@
-// server/index-dev.ts
 import fs from "node:fs";
 import path from "node:path";
 import { type Server } from "node:http";
@@ -9,9 +8,9 @@ import { createServer as createViteServer, createLogger } from "vite";
 import viteConfig from "../vite.config";
 import runApp from "./app";
 
-// Dev setup function for runApp
 export async function setupVite(app: Express, server: Server): Promise<void> {
   const viteLogger = createLogger();
+
   const viteServer = await createViteServer({
     ...viteConfig,
     configFile: false,
@@ -30,19 +29,12 @@ export async function setupVite(app: Express, server: Server): Promise<void> {
     appType: "custom",
   });
 
-  // Use Vite middleware
   app.use(viteServer.middlewares);
 
-  // Serve index.html dynamically for HMR
   app.use("*", async (req, res, next) => {
     try {
       const url = req.originalUrl;
-      const clientTemplate = path.resolve(
-        import.meta.dirname,
-        "..",
-        "client",
-        "index.html"
-      );
+      const clientTemplate = path.resolve(import.meta.dirname, "..", "client", "index.html");
 
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
@@ -59,7 +51,6 @@ export async function setupVite(app: Express, server: Server): Promise<void> {
   });
 }
 
-// Run the app
 (async () => {
   await runApp(setupVite);
 })();
