@@ -1,6 +1,9 @@
-import express, { type Express, type Request, Response, NextFunction } from "express";
+// server/app.ts
+import { type Server } from "node:http";
+import express, { type Express, type Request, type Response, type NextFunction } from "express";
 import { registerRoutes } from "./routes";
 
+// Logging helper
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -8,35 +11,39 @@ export function log(message: string, source = "express") {
     second: "2-digit",
     hour12: true,
   });
-
   console.log(`${formattedTime} [${source}] ${message}`);
 }
 
+// Create Express app
 export const app: Express = express();
 
-declare module 'http' {
+// Add rawBody property to Request type
+declare module "http" {
   interface IncomingMessage {
-    rawBody: unknown
+    rawBody: unknown;
   }
 }
 
-// Middlewares
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  }
-}));
+// Body parsing
+app.use(
+  express.json({
+    verify: (req: Request, _res: Response, buf: Buffer) => {
+      (req as any).rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
+// Logging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
   const start = Date.now();
   const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+  let capturedJsonResponse: Record<string, any> | undefined;
 
-  const originalResJson = res.json;
+  const originalResJson = res.json.bind(res);
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
+    return originalResJson(bodyJson, ...args);
   };
 
   res.on("finish", () => {
@@ -52,17 +59,27 @@ app.use((req, res, next) => {
   next();
 });
 
-// Register routes
-registerRoutes(app);
+// Run app function
+export default async function runApp(
+  setup: (app: Express, server: Server) => Promise<void>
+) {
+  // Register routes and get HTTP server
+  const server: Server = await registerRoutes(app);
 
-// Error handler
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
-  res.status(status).json({ message });
-});
+  // Error handling middleware
+  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+    const status = err.status || err.statusCode || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+    throw err; // optional: keep for logging in dev
+  });
 
-// ❌ REMOVE server.listen() entirely
-// Vercel will handle the HTTP requests automatically
+  // Run final setup (dev or prod)
+  await setup(app, server);
 
-export default app;
+  // Start server on PORT environment variable
+  const port = parseInt(process.env.PORT || "5000", 10);
+  server.listen({ port }, () => {
+    log(`serving on port ${port}`);
+  });
+}
