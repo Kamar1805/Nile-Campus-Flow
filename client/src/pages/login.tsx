@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, AlertCircle } from "lucide-react";
+import { Shield, AlertCircle, ArrowLeft } from "lucide-react";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { ThemeToggle } from "@/components/theme-toggle";
+import logoUrl from "@assets/download_1763844316538.png";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -36,16 +37,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/")}
+          data-testid="button-back"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
         <ThemeToggle />
       </div>
 
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center">
-              <Shield className="w-10 h-10 text-primary-foreground" />
-            </div>
+            <img src={logoUrl} alt="Nile University" className="h-20 w-auto object-contain" />
           </div>
           <div>
             <CardTitle className="text-3xl font-bold">CampusFlow</CardTitle>

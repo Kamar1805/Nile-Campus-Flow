@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { NotificationPanel } from "@/components/notification-panel";
 
 // Pages
+import LandingPage from "@/pages/landing-page";
 import LoginPage from "@/pages/login";
 import NotFound from "@/pages/not-found";
 import AdminDashboard from "@/pages/admin-dashboard";
@@ -123,7 +124,8 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/" component={user ? () => <Redirect to="/dashboard" /> : LoginPage} />
+      <Route path="/" component={user ? () => <Redirect to="/dashboard" /> : LandingPage} />
+      <Route path="/login" component={LoginPage} />
       <Route path="/dashboard" component={() => <ProtectedRoute component={DashboardLayout} />} />
       <Route path="/gates" component={() => <ProtectedRoute component={DashboardLayout} />} />
       <Route path="/vehicles" component={() => <ProtectedRoute component={DashboardLayout} />} />

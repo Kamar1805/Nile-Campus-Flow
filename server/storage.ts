@@ -137,10 +137,9 @@ export class MemStorage implements IStorage {
 
     // Create demo gates
     const demoGates = [
-      { name: "Main Gate", location: "University Main Entrance", status: "online", isOpen: false },
-      { name: "East Gate", location: "East Campus Entrance", status: "online", isOpen: false },
-      { name: "West Gate", location: "West Campus Entrance", status: "online", isOpen: false },
-      { name: "North Gate", location: "North Campus Entrance", status: "maintenance", isOpen: false },
+      { name: "Main Gate Entrance", location: "University Main Entrance", status: "online", isOpen: false },
+      { name: "Main Gate Exit", location: "University Main Exit", status: "online", isOpen: false },
+      { name: "Hostel Gate", location: "Student Hostel Entrance", status: "online", isOpen: false },
     ];
 
     const securityOfficer = Array.from(this.users.values()).find(u => u.role === "security_officer");

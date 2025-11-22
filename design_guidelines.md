@@ -1,30 +1,57 @@
 # CampusFlow - Design Guidelines
 
+## Brand Identity
+
+**Institution:** Nile University of Nigeria
+**Tagline:** Honors United Universities
+**Brand Colors:** Professional blue and white color scheme reflecting institutional authority and trust
+
 ## Design Approach
 
-**Selected Approach:** Design System (Fluent Design)
+**Selected Approach:** Modern Professional Design with Nile University Branding
 
-**Justification:** CampusFlow is a data-intensive enterprise application requiring clear information hierarchy, real-time monitoring capabilities, and role-based interfaces. Fluent Design excels at productivity tools and administrative dashboards with its emphasis on clarity, efficiency, and scannable data displays.
+**Justification:** CampusFlow is Nile University's Smart Vehicle Entry/Exit Authorization System requiring clear information hierarchy, real-time monitoring capabilities, and role-based interfaces. The design emphasizes institutional professionalism, accessibility, and user-friendly interactions while maintaining the university's visual identity.
 
 **Key Design Principles:**
+- Institutional professionalism with Nile University branding
 - Clarity over decoration - every element serves a functional purpose
 - Scannable information architecture for security officers
 - Consistent interaction patterns across all user roles
-- Professional, trustworthy aesthetic appropriate for campus security
+- Mobile-first responsive design for accessibility
+- Smooth animations and transitions for modern feel
 
 ---
+
+## Color System
+
+**Primary Brand Colors:**
+- Primary Blue: `hsl(205 85% 42%)` - Nile University brand color
+- Primary Foreground: `hsl(205 15% 98%)` - White text on blue
+- Background: `hsl(210 5% 98%)` (light) / `hsl(210 5% 8%)` (dark)
+- Foreground: `hsl(210 6% 12%)` (light) / `hsl(210 5% 96%)` (dark)
+
+**Semantic Colors:**
+- Accent (Success): `hsl(142 20% 86%)` - For positive states
+- Destructive: `hsl(0 78% 42%)` - For errors and critical actions
+- Muted: `hsl(210 8% 88%)` - For secondary information
+
+**Logo Integration:**
+- Nile University logo appears in: navigation, sidebar, login page, landing page footer
+- Logo maintains consistent sizing across contexts
+- Blue color from logo influences overall color scheme
 
 ## Typography System
 
 **Font Family:** 
-- Primary: Inter or Segoe UI (via Google Fonts CDN)
-- Monospace: JetBrains Mono (for IDs, timestamps, vehicle plates)
+- Primary: Inter or Segoe UI (system fonts)
+- Monospace: Menlo, Monaco (for IDs, timestamps, vehicle plates)
 
 **Hierarchy:**
+- Hero Titles: text-4xl to text-7xl font-bold (responsive)
 - Page Titles: text-3xl font-bold (30px)
-- Section Headers: text-xl font-semibold (20px)
-- Card Titles: text-lg font-medium (18px)
-- Body Text: text-base (16px)
+- Section Headers: text-xl to text-2xl font-semibold
+- Card Titles: text-lg to text-xl font-medium
+- Body Text: text-base to text-lg (16-18px)
 - Small Text/Labels: text-sm (14px)
 - Timestamps/Metadata: text-xs font-mono (12px)
 
@@ -150,38 +177,76 @@
 
 ## Responsive Behavior
 
+**Mobile-First Approach:**
+All components are designed mobile-first and scale up gracefully.
+
 **Breakpoints:**
-- Mobile: base (< 768px) - Single column, collapsed sidebar
+- Mobile: base (< 640px) - Single column, optimized touch targets
 - Tablet: md (768px+) - Two columns where appropriate
 - Desktop: lg (1024px+) - Full multi-column layouts
+- Wide: xl (1280px+) - Maximum 7xl container width
 
 **Mobile Adaptations:**
-- Bottom navigation instead of sidebar
-- Stacked cards instead of grid
-- Simplified table (hide non-essential columns)
-- Full-screen modals
+- Collapsible sidebar with hamburger menu
+- Responsive grid layouts (1 → 2 → 3 → 4 columns)
+- Touch-optimized button sizes (min 44px)
+- Simplified tables with horizontal scroll
+- Full-width modals on mobile
+- Responsive typography scaling
+- Stack navigation items on small screens
+- Adaptive spacing (smaller on mobile, larger on desktop)
 
 ---
 
-## Animations
+## Animations & Interactions
 
-**Minimal, Purposeful Animations:**
-- Gate status transitions: Simple 200ms ease for open/close indicators
-- Loading states: Subtle spinner on buttons/tables
-- No scroll-triggered or complex animations
-- Focus on instant feedback over decorative motion
+**Smooth, Professional Animations:**
+- Scroll behavior: `scroll-behavior: smooth` for anchor links
+- Fade-in animations: 0.5-1s duration for page load elements
+- Slide-in animations: From top/bottom for hero sections
+- Hover effects: `hover-elevate` class for subtle background elevation
+- Active states: `active-elevate-2` for pressed feedback
+- Gate transitions: 200-300ms ease for status changes
+- Loading states: Subtle spinners and skeleton screens
+- Scale on hover: Cards scale to 1.05 with smooth transition
+- Navigation scroll: Fixed header with backdrop blur on scroll
+
+**Transition Duration:**
+- Instant: < 150ms (hover states)
+- Quick: 200-300ms (UI element changes)
+- Standard: 500ms (page transitions)
+- Slow: 700-1000ms (hero animations)
+
+**CSS Classes Available:**
+- `.animate-in` - Animation base class
+- `.fade-in` - Fade in animation
+- `.slide-in-from-top-2` - Slide from top
+- `.slide-in-from-bottom-4` - Slide from bottom
+- `.anim-duration-700` - 0.7s animation duration
+- `.anim-duration-1000` - 1s animation duration
+- `.hover-elevate` - Hover background elevation
+- `.active-elevate-2` - Active press feedback
+- `.transition-all duration-300` - Standard Tailwind transitions
 
 ---
 
-## Images
+## Images & Assets
 
-**No hero images required** - This is a functional application, not a marketing site.
+**Logo:**
+- Nile University logo (download_1763844316538.png)
+- Used in: navbar, sidebar, login page, landing page
+- Sizing: h-10 to h-20 depending on context
+- Maintains aspect ratio with `object-contain`
+
+**Hero Images:**
+- Landing page features gradient background overlay
+- Radial gradient: `bg-[radial-gradient(45rem_50rem_at_top,theme(colors.primary/10),transparent)]`
 
 **Icon Usage:**
-- Heroicons (outline for inactive, solid for active states)
-- Via CDN: https://cdn.jsdelivr.net/npm/heroicons@2.0.0/
-- Consistent 24px size (w-6 h-6) for navigation
-- 16px (w-4 h-4) for inline icons
+- Lucide React icons throughout
+- Consistent sizing: w-4 h-4 (16px), w-5 h-5 (20px), w-6 h-6 (24px)
+- Icons match text color or use muted-foreground
+- Active states use primary color
 
 ---
 

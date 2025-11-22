@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
+import logoUrl from "@assets/download_1763844316538.png";
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
@@ -76,9 +77,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-6 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-sidebar-primary rounded-md flex items-center justify-center">
-            <DoorOpen className="w-6 h-6 text-sidebar-primary-foreground" />
-          </div>
+          <img src={logoUrl} alt="Nile University" className="h-10 w-auto object-contain" />
           <div>
             <h2 className="text-lg font-bold text-sidebar-foreground">CampusFlow</h2>
             <p className="text-xs text-muted-foreground capitalize">{user?.role?.replace('_', ' ')}</p>
